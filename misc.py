@@ -1,15 +1,17 @@
 from __future__ import division
 import numpy as np
 from matplotlib import pyplot as plt
+import math
 from bs4 import BeautifulSoup
 from google import search
 from sklearn.feature_extraction.text import TfidfVectorizer
 import urlparse
 import urllib,urllib2
 import json
-import time
-import u
 # import NetworkX
+import time
+import util
+
 def gSearch(str):
     start = time.time()
     # 1) Look keywords on google, stop = number of pages
@@ -62,7 +64,6 @@ def cleanup(mtx):
     for i in range(len(mtx)):
         if True in np.isnan(mtx[i]) or sum(mtx[i]) == 0:
             badindex.append(i)
-
     for b in badindex:
         mtx = numpy.delete(x, (b), axis=0)
         mtx = numpy.delete(x,(b), axis=1)
