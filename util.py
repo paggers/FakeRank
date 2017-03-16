@@ -68,7 +68,7 @@ class PersonalizedPageRank:
         self.alpha = newAlpha
 
     def pageRank(self):
-        vals, vecs = np.linalg.eigs(self.transitionMatrix.T)
+        vals, vecs = np.linalg.eig(self.transitionMatrix.T)
         v = vecs[:,0]
         v *= 1/sum(v)
         return v
