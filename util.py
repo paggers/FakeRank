@@ -2,6 +2,7 @@ from __future__ import division
 import numpy as np
 from matplotlib import pyplot as plt
 import math
+import misc
 
 
 class PersonalizedPageRank:
@@ -43,7 +44,7 @@ class PersonalizedPageRank:
         
         #Update transition matrix
         if adjacencyMatrix is not None:
-            newTransitionMatrix = self.DInverse*self.transitionMatrix
+            newTransitionMatrix = self.DInverse.dot(self.transitionMatrix)
             self.transitionMatrix = newTransitionMatrix
 
         self.basisVectors = [0]*self.n
@@ -66,6 +67,12 @@ class PersonalizedPageRank:
         self.computeHubVectors(newAlpha)
         self.alpha = newAlpha
 
+    def pageRank(self):
+        vals, vecs = np.linalg.eigs(self.transitionMatrix.T)
+        v = vecs[:,0]
+        v *= 1/sum(v)
+        return v
+
     def computePPV(self, u, alpha):
         '''
         compute personalized PageRank vector where u is the preference vector
@@ -73,7 +80,7 @@ class PersonalizedPageRank:
         '''
         if self.hubVectors is None or alpha != self.alpha:
             n=self.n
-            A = (alpha-1)*self.transitionMatrix + np.identity(n)
+            A = (alpha-1)*self.transitionMatrix.T + np.identity(n)
             b = alpha*u
             return np.linalg.solve(A, b)
         else:
