@@ -17,7 +17,7 @@ def gSearch(str):
     # 1) Look keywords on google, stop = number of pages
     print "Retrieving pages..."
     pages = []
-    for url in search(str, stop=50):
+    for url in search(str, stop=25):
         print url
         pages.append(url)
     print "Pages retrieved"
