@@ -23,7 +23,7 @@ class PersonalizedPageRank:
         else:
             self.transitionMatrix = adjacencyMatrix #temporarily
         self.hub_vectors = None 
-        self.n = adjacencyMatrix.shape[1]
+        self.n = self.transitionMatrix.shape[1]
         self.alpha = alpha
         if not alpha:
             self.alpha = .15
@@ -62,9 +62,9 @@ class PersonalizedPageRank:
         #init hubvectors 
         self.hubVectors = None
 
-        print self.transitionMatrix
-        print self.D
-        print self.DInverse
+        #print self.transitionMatrix
+        #print self.D
+        #print self.DInverse
     
     def degree(self, node):
         return self.D[node][node]
@@ -78,10 +78,10 @@ class PersonalizedPageRank:
         compute personalized PageRank vector where u is the preference vector
         alpha is the jumping factor
         '''
-        if self.hubVectors is None:
+        if self.hubVectors is None or alpha != self.alpha:
             n=self.n
-            A = (alpha-1)*self.transitionMatrix.T + np.identity(n)
-            b = alpha*u.T
+            A = (alpha-1)*self.transitionMatrix + np.identity(n)
+            b = alpha*u
             return np.linalg.solve(A, b)
         else:
             weights = [i for i in u]
@@ -140,15 +140,16 @@ class PersonalizedPageRank:
         for v in range(self.n):
             d = self.degree(v)
             u = self.getHubVector(v)
-            if v == 0:
-                print u
             b = self.getBasisVector(v)
             dist = self.distributionDistance(b, u, alpha)
             total += d*dist*dist
+            #print 'variance at', alpha, 'is', total
         return total 
     
     def clusterVariance(self, alpha):
         total = 0
+        if alpha != self.alpha:
+            self.updateAlpha(alpha)
         for v in range(self.n):
             d = self.degree(v)
             #print "make sure hub vecs are initialized for cluster variance"
@@ -158,6 +159,17 @@ class PersonalizedPageRank:
             total += d*dist*dist
         return total
     
+A = np.array([ [0,     0,     0,     1, 0, 1],
+            [1/2.0, 0,     0,     0, 0, 0],
+            [0,     1/2.0, 0,     0, 0, 0],
+            [0,     1/2.0, 1/3.0, 0, 0, 0],
+            [0,     0,     1/3.0, 0, 0, 0],
+            [1/2.0, 0,     1/3.0, 0, 1, 0 ] ])
+PPR = PersonalizedPageRank(A)
+PPR.computeHubVectors(.15)
+#plt.plot([PPR.prVariance(alpha) for alpha in np.arange(0,1,.01)])
+#plt.show()
+
 
 a = '0, 1, 0, 1, 0, 1'
 b = '1, 0, 1, 0, 1, 0'
@@ -175,7 +187,7 @@ for i in range(6):
 
 PPR = PersonalizedPageRank(adjacencyMatrix = E)
 PPR.computeHubVectors(.1)
-v = [PPR.prVariance(alpha) for alpha in np.arange(0, 1, .01)]
+v = [PPR.clusterVariance(alpha) for alpha in np.arange(0, 1, .01)]
 plt.plot(np.arange(0, 1, .01), v)
 plt.show()
 
@@ -306,7 +318,6 @@ print PPR.prVariance(.15)
 print PPR.clusterVariance(.15)
 
 
->>>>>>> 10fa92c9c63e1a839b2c2fbc8de83abeb12a97c3
 # A = np.array([ [0,     0,     0,     1, 0, 1],
 #             [1/2.0, 0,     0,     0, 0, 0],
 #             [0,     1/2.0, 0,     0, 0, 0],
@@ -323,16 +334,3 @@ print PPR.clusterVariance(.15)
 # print PPR.prVariance(.15)
 # print PPR.clusterVariance(.15)
 
-'''
-PageRank-Display(G, S, ↵, ✏)
-Input: a graph G = (V, E), a seed set S ✓ V , a jumping constant ↵ 2 (0, 1], and an approximation factor ✏ > 0.
-1. For each s 2 S, compute an approximate PageRank vector p(↵, s).
-2. Construct a new graph G0 with vertex set V and edges as follows:
-– {s,v}fors2Sandv2V\Swithweight1/ps(v),aslongasps(v)>0.
-– {s, s0} for s, s0 2 S with weight 10 ⇥ maxs,v 1/ps(v).
-3. Use a force-based display algorithm on G0 to determine coordinates cv for
-each v 2 V .
-4. Compute the Voronoi diagram on S.
-5. Draw G using the coordinates cv, highlighting S, and overlaying the Voronoi
-diagram.
-'''
