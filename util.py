@@ -154,11 +154,11 @@ class PersonalizedPageRank:
 
 def gSearch(str):
     start = time.time()
-    # 1) Insert keywords
-    # 2) Look keywords on google, return n=100 pages
+    # 1) Look keywords on google, stop = number of pages
     print "Retrieving pages..."
     pages = []
-    for url in search(str, stop=5):
+    for url in search(str, stop=100):
+        print url
         pages.append(url)
     print "Pages retrieved"
     end = time.time()
@@ -166,7 +166,7 @@ def gSearch(str):
     return pages
 
 def simMatrix(pages):
-    # 3) Generate similarity vectors using SimRank
+    # 2) Generate similarity vectors using SimRank
     start = time.time()
     print "Generating similarity vectors..."
     vect = TfidfVectorizer(min_df=1)
@@ -187,17 +187,17 @@ def simMatrix(pages):
             textList.append(textI)
         except:
             print str(i) + "th parse was unsuccessful :("
-    # 4) Create similarity matrix & normalize
+    # 3) Create similarity matrix 
     tfidf = vect.fit_transform(textList)
     transition_matrix = (tfidf * tfidf.T).A
     transition_matrix = cleanup(transition_matrix)
-    row_sums = transition_matrix.sum(axis=1)
-    print "Similarity Matrix computed"
+    transition_matrix = adjacent(transition_matrix)
+    # row_sums = transition_matrix.sum(axis=1)
+    # mtx = transition_matrix / row_sums[:, np.newaxis]   # normalizing
     end = time.time()
+    print "Similarity Matrix computed"
     print(end - start)
-    mtx = transition_matrix / row_sums[:, np.newaxis]
-    print mtx 
-    return mtx
+    return transition_matrix
 
 def cleanup(mtx):
     badindex = []
@@ -209,9 +209,19 @@ def cleanup(mtx):
         mtx = numpy.delete(x,(b), axis=1)
     return mtx
 
+def adjacent(mtx):
+    threshold = 0.0
+    for i in range(len(mtx)):
+        for j in range(len(mtx)):
+            if i == j:
+                mtx[i][j] = 0
+            elif mtx[i][j] < threshold:
+                mtx[i][j] = 0
+            else:
+                mtx[i][j] = 1
+    return mtx
 
 # def graphMatrix(mtx)
-
 
 # # 4) Linear Algebra time
 # PPR = PersonalizedPageRank(None, transition_matrix)
@@ -220,11 +230,6 @@ def cleanup(mtx):
 # PPR.nodeDistance(1, 2, .15)
 # print PPR.prVariance(.15)
 # print PPR.clusterVariance(.15)
-
-
-
-
-
 
 # A = np.array([ [0,     0,     0,     1, 0, 1],
 #             [1/2.0, 0,     0,     0, 0, 0],
@@ -242,4 +247,16 @@ def cleanup(mtx):
 # print PPR.prVariance(.15)
 # print PPR.clusterVariance(.15)
 
-
+'''
+PageRank-Display(G, S, ↵, ✏)
+Input: a graph G = (V, E), a seed set S ✓ V , a jumping constant ↵ 2 (0, 1], and an approximation factor ✏ > 0.
+1. For each s 2 S, compute an approximate PageRank vector p(↵, s).
+2. Construct a new graph G0 with vertex set V and edges as follows:
+– {s,v}fors2Sandv2V\Swithweight1/ps(v),aslongasps(v)>0.
+– {s, s0} for s, s0 2 S with weight 10 ⇥ maxs,v 1/ps(v).
+3. Use a force-based display algorithm on G0 to determine coordinates cv for
+each v 2 V .
+4. Compute the Voronoi diagram on S.
+5. Draw G using the coordinates cv, highlighting S, and overlaying the Voronoi
+diagram.
+'''
