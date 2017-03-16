@@ -2,14 +2,7 @@ from __future__ import division
 import numpy as np
 from matplotlib import pyplot as plt
 import math
-from bs4 import BeautifulSoup
-from google import search
-from sklearn.feature_extraction.text import TfidfVectorizer
-import urlparse
-import urllib,urllib2
-import json
-# import NetworkX
-import time
+
 
 class PersonalizedPageRank:
     def __init__(self, edges=None, adjacencyMatrix=None, alpha=None):
@@ -23,7 +16,7 @@ class PersonalizedPageRank:
         else:
             self.transitionMatrix = adjacencyMatrix #temporarily
         self.hub_vectors = None 
-        self.n = adjacencyMatrix.shape[1]
+        self.n = self.transitionMatrix.shape[1]
         self.alpha = alpha
         if not alpha:
             self.alpha = .15
@@ -62,9 +55,9 @@ class PersonalizedPageRank:
         #init hubvectors 
         self.hubVectors = None
 
-        print self.transitionMatrix
-        print self.D
-        print self.DInverse
+        #print self.transitionMatrix
+        #print self.D
+        #print self.DInverse
     
     def degree(self, node):
         return self.D[node][node]
@@ -78,10 +71,10 @@ class PersonalizedPageRank:
         compute personalized PageRank vector where u is the preference vector
         alpha is the jumping factor
         '''
-        if self.hubVectors is None:
+        if self.hubVectors is None or alpha != self.alpha:
             n=self.n
-            A = (alpha-1)*self.transitionMatrix.T + np.identity(n)
-            b = alpha*u.T
+            A = (alpha-1)*self.transitionMatrix + np.identity(n)
+            b = alpha*u
             return np.linalg.solve(A, b)
         else:
             weights = [i for i in u]
@@ -140,15 +133,16 @@ class PersonalizedPageRank:
         for v in range(self.n):
             d = self.degree(v)
             u = self.getHubVector(v)
-            if v == 0:
-                print u
             b = self.getBasisVector(v)
             dist = self.distributionDistance(b, u, alpha)
             total += d*dist*dist
+            #print 'variance at', alpha, 'is', total
         return total 
     
     def clusterVariance(self, alpha):
         total = 0
+        if alpha != self.alpha:
+            self.updateAlpha(alpha)
         for v in range(self.n):
             d = self.degree(v)
             #print "make sure hub vecs are initialized for cluster variance"
@@ -178,12 +172,3 @@ if __name__ == '__main__':
     v = [PPR.prVariance(alpha) for alpha in np.arange(0, 1, .01)]
     plt.plot(np.arange(0, 1, .01), v)
     plt.show()
-
-
-# # 4) Linear Algebra time
-# PPR = PersonalizedPageRank(None, transition_matrix)
-# PPR.computeHubVectors(.15)
-# vectors = PPR.getHubVectors()
-# PPR.nodeDistance(1, 2, .15)
-# print PPR.prVariance(.15)
-# print PPR.clusterVariance(.15)
