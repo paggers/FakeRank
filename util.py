@@ -7,6 +7,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import urlparse
 import urllib,urllib2
 import json
+# import NetworkX
+import time
 
 class PersonalizedPageRank:
     def __init__(self, vertices, edges=None, adjacencyMatrix=None, alpha=None):
@@ -149,6 +151,77 @@ class PersonalizedPageRank:
             dist = self.distributionDistance(u, stationaryDist, alpha)
             total += d*dist*dist
         return total
+
+def gSearch(str):
+    start = time.time()
+    # 1) Insert keywords
+    # 2) Look keywords on google, return n=100 pages
+    print "Retrieving pages..."
+    pages = []
+    for url in search(str, stop=5):
+        pages.append(url)
+    print "Pages retrieved"
+    end = time.time()
+    print(end - start)
+    return pages
+
+def simMatrix(pages):
+    # 3) Generate similarity vectors using SimRank
+    start = time.time()
+    print "Generating similarity vectors..."
+    vect = TfidfVectorizer(min_df=1)
+    class MyOpener(urllib.FancyURLopener):
+       version = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15'
+    myopener = MyOpener()
+    textList = []
+    for i in xrange(len(pages)):
+        try:
+            page = myopener.open(pages[i])  
+            text = page.read()
+            # text = text.decode('unicode_escape').encode('ascii','ignore')
+            # text = "".join(text)
+            myopener.close()
+            page.close()        # Doulbe check
+            soupI = BeautifulSoup(text, 'lxml')
+            textI = soupI.get_text()
+            textList.append(textI)
+        except:
+            print str(i) + "th parse was unsuccessful :("
+    # 4) Create similarity matrix & normalize
+    tfidf = vect.fit_transform(textList)
+    transition_matrix = (tfidf * tfidf.T).A
+    transition_matrix = cleanup(transition_matrix)
+    row_sums = transition_matrix.sum(axis=1)
+    print "Similarity Matrix computed"
+    end = time.time()
+    print(end - start)
+    mtx = transition_matrix / row_sums[:, np.newaxis]
+    print mtx 
+    return mtx
+
+def cleanup(mtx):
+    badindex = []
+    for i in range(len(mtx)):
+        if True in np.isnan(mtx[i]):
+            badindex.append(i)
+    for b in badindex:
+        mtx = numpy.delete(x, (b), axis=0)
+        mtx = numpy.delete(x,(b), axis=1)
+    return mtx
+
+
+# def graphMatrix(mtx)
+
+
+# # 4) Linear Algebra time
+# PPR = PersonalizedPageRank(None, transition_matrix)
+# PPR.computeHubVectors(.15)
+# vectors = PPR.getHubVectors()
+# PPR.nodeDistance(1, 2, .15)
+# print PPR.prVariance(.15)
+# print PPR.clusterVariance(.15)
+
+
 
 
 # 1) Insert keywords
