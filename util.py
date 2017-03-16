@@ -158,6 +158,38 @@ class PersonalizedPageRank:
             dist = self.distributionDistance(u, stationaryDist, alpha)
             total += d*dist*dist
         return total
+
+    def volume(self, T):
+        vol = 0
+        for v in T:
+            vol += self.degree(v)
+        return vol
+
+    def assignVerticesToCenters(self, C, alpha):
+        assignment = {c:list() for c in C}
+        for v in range(self.n):
+            bestDist = float("inf")
+            closestNode = C[0]
+            for c in C:
+                if self.nodeDistance(v, c, alpha) < bestDist:
+                    bestDist = self.nodeDistance(v, c, alpha)
+                    closestNode = c
+            assignment[closestNode].append(v)
+        return assignment
+
+    def setClusterVariance(self, C, alpha):
+        if alpha != self.alpha:
+            self.updateAlpha(alpha)
+        total = 0
+        assignment = self.assignVerticesToCenters(C, alpha)
+        for c in C:
+            vol = self.volume(assignment[c])
+            stationaryDist = 1/PPR.n * sum(PPR.getHubVectors())
+            dist = self.distributionDistance(self.getBasisVector(c), stationaryDist, alpha)
+            total += vol * dist * dist
+        return total
+        
+        
     
 if __name__ == '__main__':
     a = '0, 1, 0, 1, 0, 1'
@@ -177,5 +209,6 @@ if __name__ == '__main__':
     PPR = PersonalizedPageRank(adjacencyMatrix = E)
     PPR.computeHubVectors(.1)
     v = [PPR.prVariance(alpha) for alpha in np.arange(0, 1, .01)]
-    plt.plot(np.arange(0, 1, .01), v)
-    plt.show()
+    #plt.plot(np.arange(0, 1, .01), v)
+    #plt.show()
+    print PPR.setClusterVariance([1, 2, 3], .15)
