@@ -50,8 +50,9 @@ def simMatrix(pages):
     # 3) Create similarity matrix 
     tfidf = vect.fit_transform(textList)
     transition_matrix = (tfidf * tfidf.T).A
-    transition_matrix = adjacent(transition_matrix)
+    transition_matrix = filterNaN(transition_matrix)
     transition_matrix = cleanup(transition_matrix)
+    transition_matrix = noZeros(transition_matrix)
     # row_sums = transition_matrix.sum(axis=1)
     # mtx = transition_matrix / row_sums[:, np.newaxis]   # normalizing
     end = time.time()
@@ -59,15 +60,21 @@ def simMatrix(pages):
     print(end - start)
     return transition_matrix
 
-def cleanup(mtx):
+def filterNaN(mtx):
     badindex = []
     for i in range(len(mtx)):
         if True in np.isnan(mtx[i]):
             badindex.append(i)
-            print i
-        elif sum(mtx[i]) == 0:
+    for b in badindex:
+        mtx = np.delete(mtx,(b), axis=0)
+        mtx = np.delete(mtx,(b), axis=1)
+    return mtx
+
+def noZeros(mtx):
+    badindex = []
+    for i in range(len(mtx)):
+        if sum(mtx[i]) == 0:
             badindex.append(i)
-            print i
     for b in badindex:
         mtx = np.delete(mtx,(b), axis=0)
         mtx = np.delete(mtx,(b), axis=1)
