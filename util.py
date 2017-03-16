@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+from matplotlib import pyplot as plt
 import math
 from bs4 import BeautifulSoup
 from google import search
@@ -11,19 +12,18 @@ import json
 import time
 
 class PersonalizedPageRank:
-    def __init__(self, vertices, edges=None, adjacencyMatrix=None, alpha=None):
+    def __init__(self, edges=None, adjacencyMatrix=None, alpha=None):
         '''
         vertices should be a list of references to vertex objects (i.e. articles)
         edges should be an nxn numpy matrix (undirected)
         edges_{i, j} is the weight of the edge from i to j 
         '''
-        self.vertices = vertices
         if edges is not None:
             self.transitionMatrix = edges
         else:
             self.transitionMatrix = adjacencyMatrix #temporarily
         self.hub_vectors = None 
-        self.n = edges.shape[1]
+        self.n = adjacencyMatrix.shape[1]
         self.alpha = alpha
         if not alpha:
             self.alpha = .15
@@ -31,9 +31,8 @@ class PersonalizedPageRank:
         #Initialize degree matrix
         degrees = [0]*self.n
         for i in range(self.n):
-            for entry in self.transitionMatrix[i]:
-                if entry != 0:
-                    degrees[i] += 1
+            degrees[i] = np.count_nonzero(self.transitionMatrix[i])
+
         D=np.zeros(shape=(self.n, self.n))
         for i in range(self.n):
             D[i][i] = degrees[i]
@@ -54,7 +53,6 @@ class PersonalizedPageRank:
             newTransitionMatrix = self.DInverse*self.transitionMatrix
             self.transitionMatrix = newTransitionMatrix
 
-        #init basis vectors for reference
         self.basisVectors = [0]*self.n
         for i in range(self.n):
             basisI = np.zeros(self.n)
@@ -63,12 +61,16 @@ class PersonalizedPageRank:
 
         #init hubvectors 
         self.hubVectors = None
+
+        print self.transitionMatrix
+        print self.D
+        print self.DInverse
     
     def degree(self, node):
         return self.D[node][node]
 
     def updateAlpha(self, newAlpha):
-        self.computeHubVectors(alpha)
+        self.computeHubVectors(newAlpha)
         self.alpha = newAlpha
 
     def computePPV(self, u, alpha):
@@ -78,8 +80,8 @@ class PersonalizedPageRank:
         '''
         if self.hubVectors is None:
             n=self.n
-            A = (alpha-1)*self.transitionMatrix + np.identity(n)
-            b = alpha*u
+            A = (alpha-1)*self.transitionMatrix.T + np.identity(n)
+            b = alpha*u.T
             return np.linalg.solve(A, b)
         else:
             weights = [i for i in u]
@@ -133,9 +135,13 @@ class PersonalizedPageRank:
     
     def prVariance(self, alpha):
         total = 0
+        if alpha != self.alpha:
+            self.updateAlpha(alpha)
         for v in range(self.n):
             d = self.degree(v)
             u = self.getHubVector(v)
+            if v == 0:
+                print u
             b = self.getBasisVector(v)
             dist = self.distributionDistance(b, u, alpha)
             total += d*dist*dist
@@ -151,6 +157,32 @@ class PersonalizedPageRank:
             dist = self.distributionDistance(u, stationaryDist, alpha)
             total += d*dist*dist
         return total
+    
+
+a = '0, 1, 0, 1, 0, 1'
+b = '1, 0, 1, 0, 1, 0'
+c = '0, 1, 0, 0, 0, 0'
+d = '1, 0, 0, 0, 0, 1'
+e = '0, 1, 0, 0, 0, 0'
+f = '1, 0, 0, 1, 0, 0'
+E = np.matrix('%s;%s;%s;%s;%s;%s' % (a, b, c, d, e, f))
+u = [1/6]*6
+u = np.matrix(u)
+degree = [3, 3, 1, 2, 1, 2]
+D = np.zeros(shape=(6, 6))
+for i in range(6):
+    D[i][i] = 1/degree[i]
+
+PPR = PersonalizedPageRank(adjacencyMatrix = E)
+PPR.computeHubVectors(.1)
+v = [PPR.prVariance(alpha) for alpha in np.arange(0, 1, .01)]
+plt.plot(np.arange(0, 1, .01), v)
+plt.show()
+
+
+
+
+
 
 def gSearch(str):
     start = time.time()
@@ -231,6 +263,50 @@ def adjacent(mtx):
 # print PPR.prVariance(.15)
 # print PPR.clusterVariance(.15)
 
+
+
+
+
+# 1) Insert keywords
+userInput = []
+Input = raw_input('Search: ')
+
+# 2) Look keywords on google, return n=20 pages
+print "Retrieving pages..."
+pages = []
+for url in search(Input, stop=100):
+    pages.append(url)
+# 3) Generate similarity vectors using SimRank
+print "Generating similarity vectors..."
+vect = TfidfVectorizer(min_df=1)
+class MyOpener(urllib.FancyURLopener):
+   version = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15'
+myopener = MyOpener()
+textList = []
+for i in xrange(len(pages)):
+    page = myopener.open(pages[i])  
+    text = page.read()
+    text = text.decode('unicode_escape').encode('ascii','ignore')
+    text = "".join(text)
+    page.close()
+    soupI = BeautifulSoup(text, 'lxml')
+    textI = soupI.get_text()
+    textList.append(textI)
+tfidf = vect.fit_transform(textList)
+transition_matrix = (tfidf * tfidf.T).A
+row_sums = transition_matrix.sum(axis=1)
+transition_matrix = transition_matrix / row_sums[:, np.newaxis]
+print transition_matrix
+# 4) Linear Algebra time
+PPR = PersonalizedPageRank(None, transition_matrix)
+PPR.computeHubVectors(.15)
+vectors = PPR.getHubVectors()
+PPR.nodeDistance(1, 2, .15)
+print PPR.prVariance(.15)
+print PPR.clusterVariance(.15)
+
+
+>>>>>>> 10fa92c9c63e1a839b2c2fbc8de83abeb12a97c3
 # A = np.array([ [0,     0,     0,     1, 0, 1],
 #             [1/2.0, 0,     0,     0, 0, 0],
 #             [0,     1/2.0, 0,     0, 0, 0],
