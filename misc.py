@@ -17,7 +17,7 @@ def gSearch(str):
     # 1) Look keywords on google, stop = number of pages
     print "Retrieving pages..."
     pages = []
-    for url in search(str, stop=30):
+    for url in search(str, stop=50):
         print url
         pages.append(url)
     print "Pages retrieved"
@@ -50,8 +50,8 @@ def simMatrix(pages):
     # 3) Create similarity matrix 
     tfidf = vect.fit_transform(textList)
     transition_matrix = (tfidf * tfidf.T).A
-    transition_matrix = cleanup(transition_matrix)
     transition_matrix = adjacent(transition_matrix)
+    transition_matrix = cleanup(transition_matrix)
     # row_sums = transition_matrix.sum(axis=1)
     # mtx = transition_matrix / row_sums[:, np.newaxis]   # normalizing
     end = time.time()
@@ -62,11 +62,15 @@ def simMatrix(pages):
 def cleanup(mtx):
     badindex = []
     for i in range(len(mtx)):
-        if True in np.isnan(mtx[i]) or sum(mtx[i]) == 0:
+        if True in np.isnan(mtx[i]):
             badindex.append(i)
+            print i
+        elif sum(mtx[i]) == 0:
+            badindex.append(i)
+            print i
     for b in badindex:
-        mtx = numpy.delete(mtx, (b), axis=0)
-        mtx = numpy.delete(mtx,(b), axis=1)
+        mtx = np.delete(mtx,(b), axis=0)
+        mtx = np.delete(mtx,(b), axis=1)
     return mtx
 
 def adjacent(mtx):
