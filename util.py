@@ -158,102 +158,27 @@ class PersonalizedPageRank:
             total += d*dist*dist
         return total
     
+if __name__ == '__main__':
+    a = '0, 1, 0, 1, 0, 1'
+    b = '1, 0, 1, 0, 1, 0'
+    c = '0, 1, 0, 0, 0, 0'
+    d = '1, 0, 0, 0, 0, 1'
+    e = '0, 1, 0, 0, 0, 0'
+    f = '1, 0, 0, 1, 0, 0'
+    E = np.matrix('%s;%s;%s;%s;%s;%s' % (a, b, c, d, e, f))
+    u = [1/6]*6
+    u = np.matrix(u)
+    degree = [3, 3, 1, 2, 1, 2]
+    D = np.zeros(shape=(6, 6))
+    for i in range(6):
+        D[i][i] = 1/degree[i]
 
-a = '0, 1, 0, 1, 0, 1'
-b = '1, 0, 1, 0, 1, 0'
-c = '0, 1, 0, 0, 0, 0'
-d = '1, 0, 0, 0, 0, 1'
-e = '0, 1, 0, 0, 0, 0'
-f = '1, 0, 0, 1, 0, 0'
-E = np.matrix('%s;%s;%s;%s;%s;%s' % (a, b, c, d, e, f))
-u = [1/6]*6
-u = np.matrix(u)
-degree = [3, 3, 1, 2, 1, 2]
-D = np.zeros(shape=(6, 6))
-for i in range(6):
-    D[i][i] = 1/degree[i]
+    PPR = PersonalizedPageRank(adjacencyMatrix = E)
+    PPR.computeHubVectors(.1)
+    v = [PPR.prVariance(alpha) for alpha in np.arange(0, 1, .01)]
+    plt.plot(np.arange(0, 1, .01), v)
+    plt.show()
 
-PPR = PersonalizedPageRank(adjacencyMatrix = E)
-PPR.computeHubVectors(.1)
-v = [PPR.prVariance(alpha) for alpha in np.arange(0, 1, .01)]
-plt.plot(np.arange(0, 1, .01), v)
-plt.show()
-
-
-
-
-
-
-def gSearch(str):
-    start = time.time()
-    # 1) Look keywords on google, stop = number of pages
-    print "Retrieving pages..."
-    pages = []
-    for url in search(str, stop=100):
-        print url
-        pages.append(url)
-    print "Pages retrieved"
-    end = time.time()
-    print(end - start)
-    return pages
-
-def simMatrix(pages):
-    # 2) Generate similarity vectors using SimRank
-    start = time.time()
-    print "Generating similarity vectors..."
-    vect = TfidfVectorizer(min_df=1)
-    class MyOpener(urllib.FancyURLopener):
-       version = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15'
-    myopener = MyOpener()
-    textList = []
-    for i in xrange(len(pages)):
-        try:
-            page = myopener.open(pages[i])  
-            text = page.read()
-            # text = text.decode('unicode_escape').encode('ascii','ignore')
-            # text = "".join(text)
-            myopener.close()
-            page.close()        # Doulbe check
-            soupI = BeautifulSoup(text, 'lxml')
-            textI = soupI.get_text()
-            textList.append(textI)
-        except:
-            print str(i) + "th parse was unsuccessful :("
-    # 3) Create similarity matrix 
-    tfidf = vect.fit_transform(textList)
-    transition_matrix = (tfidf * tfidf.T).A
-    transition_matrix = cleanup(transition_matrix)
-    transition_matrix = adjacent(transition_matrix)
-    # row_sums = transition_matrix.sum(axis=1)
-    # mtx = transition_matrix / row_sums[:, np.newaxis]   # normalizing
-    end = time.time()
-    print "Similarity Matrix computed"
-    print(end - start)
-    return transition_matrix
-
-def cleanup(mtx):
-    badindex = []
-    for i in range(len(mtx)):
-        if True in np.isnan(mtx[i]):
-            badindex.append(i)
-    for b in badindex:
-        mtx = numpy.delete(x, (b), axis=0)
-        mtx = numpy.delete(x,(b), axis=1)
-    return mtx
-
-def adjacent(mtx):
-    threshold = 0.0
-    for i in range(len(mtx)):
-        for j in range(len(mtx)):
-            if i == j:
-                mtx[i][j] = 0
-            elif mtx[i][j] < threshold:
-                mtx[i][j] = 0
-            else:
-                mtx[i][j] = 1
-    return mtx
-
-# def graphMatrix(mtx)
 
 # # 4) Linear Algebra time
 # PPR = PersonalizedPageRank(None, transition_matrix)
@@ -262,77 +187,3 @@ def adjacent(mtx):
 # PPR.nodeDistance(1, 2, .15)
 # print PPR.prVariance(.15)
 # print PPR.clusterVariance(.15)
-
-
-
-
-
-# 1) Insert keywords
-userInput = []
-Input = raw_input('Search: ')
-
-# 2) Look keywords on google, return n=20 pages
-print "Retrieving pages..."
-pages = []
-for url in search(Input, stop=100):
-    pages.append(url)
-# 3) Generate similarity vectors using SimRank
-print "Generating similarity vectors..."
-vect = TfidfVectorizer(min_df=1)
-class MyOpener(urllib.FancyURLopener):
-   version = 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.15) Gecko/20110303 Firefox/3.6.15'
-myopener = MyOpener()
-textList = []
-for i in xrange(len(pages)):
-    page = myopener.open(pages[i])  
-    text = page.read()
-    text = text.decode('unicode_escape').encode('ascii','ignore')
-    text = "".join(text)
-    page.close()
-    soupI = BeautifulSoup(text, 'lxml')
-    textI = soupI.get_text()
-    textList.append(textI)
-tfidf = vect.fit_transform(textList)
-transition_matrix = (tfidf * tfidf.T).A
-row_sums = transition_matrix.sum(axis=1)
-transition_matrix = transition_matrix / row_sums[:, np.newaxis]
-print transition_matrix
-# 4) Linear Algebra time
-PPR = PersonalizedPageRank(None, transition_matrix)
-PPR.computeHubVectors(.15)
-vectors = PPR.getHubVectors()
-PPR.nodeDistance(1, 2, .15)
-print PPR.prVariance(.15)
-print PPR.clusterVariance(.15)
-
-
->>>>>>> 10fa92c9c63e1a839b2c2fbc8de83abeb12a97c3
-# A = np.array([ [0,     0,     0,     1, 0, 1],
-#             [1/2.0, 0,     0,     0, 0, 0],
-#             [0,     1/2.0, 0,     0, 0, 0],
-#             [0,     1/2.0, 1/3.0, 0, 0, 0],
-#             [0,     0,     1/3.0, 0, 0, 0],
-#             [1/2.0, 0,     1/3.0, 0, 1, 0 ] ])
-# u = np.ones(6)
-# u*= (1/6)
-
-# PPR = PersonalizedPageRank(None, A)
-# PPR.computeHubVectors(.15)
-# vectors = PPR.getHubVectors()
-# PPR.nodeDistance(1, 2, .15)
-# print PPR.prVariance(.15)
-# print PPR.clusterVariance(.15)
-
-'''
-PageRank-Display(G, S, ↵, ✏)
-Input: a graph G = (V, E), a seed set S ✓ V , a jumping constant ↵ 2 (0, 1], and an approximation factor ✏ > 0.
-1. For each s 2 S, compute an approximate PageRank vector p(↵, s).
-2. Construct a new graph G0 with vertex set V and edges as follows:
-– {s,v}fors2Sandv2V\Swithweight1/ps(v),aslongasps(v)>0.
-– {s, s0} for s, s0 2 S with weight 10 ⇥ maxs,v 1/ps(v).
-3. Use a force-based display algorithm on G0 to determine coordinates cv for
-each v 2 V .
-4. Compute the Voronoi diagram on S.
-5. Draw G using the coordinates cv, highlighting S, and overlaying the Voronoi
-diagram.
-'''
