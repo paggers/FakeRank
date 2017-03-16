@@ -158,7 +158,7 @@ Input = raw_input('Search: ')
 # 2) Look keywords on google, return n=20 pages
 print "Retrieving pages..."
 pages = []
-for url in search(Input, stop=10):
+for url in search(Input, stop=100):
     pages.append(url)
 # 3) Generate similarity vectors using SimRank
 print "Generating similarity vectors..."
