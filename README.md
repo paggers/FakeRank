@@ -14,14 +14,14 @@ Hrishi Dharam, Eilam Levitov
 
 
 -Algorithm Overview:  
-	1. Enter Search Value
-	2. Uses google to retrieve results
-	3. Parse text for each result
-	4. Generate a graph where edge weights correspond to the similarities (tf-idf) of the documents
-	5. Adjust edge weights and apply threshold on similarities in order to transform to adjacency matrix
-	6. Normalize the adjacency matrix to be applicable to PageRank Algorithm
-	7. Select parameters by simulations and apply the PageRank-ClusteringA [1]
-	8. Output the articles corresponding to the centers
+	1. Enter Search Value  
+	2. Uses google to retrieve results  
+	3. Parse text for each result  
+	4. Generate a graph where edge weights correspond to the similarities (tf-idf) of the documents  
+	5. Adjust edge weights and apply threshold on similarities in order to transform to adjacency matrix  
+	6. Normalize the adjacency matrix to be applicable to PageRank Algorithm  
+	7. Select parameters by simulations and apply the PageRank-ClusteringA [1]  
+	8. Output the articles corresponding to the centers  
 
 
 ** To see full explanation please view finding-key-articles.pdf
