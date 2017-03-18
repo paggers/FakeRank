@@ -1,24 +1,27 @@
 #FakeRank: 
-Fake news exposed
 
 
-March 2nd, 2017
+March 17, 2017
 Hrishi Dharam, Eilam Levitov
 
 
-
-
 Abstract
-The current state of communication, specifically media and social network, provides an inherent vulnerability to a rapidly growing problem colloquially known as “fake news”. This vulnerability preys on the accessibility of trending articles which consist of few to none credible sources or actual fact checking, to the point of malicious fabrication of facts. In this project we construct a system which uses the PageRank algorithm to establish a measure of fakeness for a given article. 
+	We began this project with a general goal to rank the ’fakeness’ of news articles. During construction the goal has shifted slightly, but the concept is still similar. Given a search value, our program will return results corresponding to the ’center of mass’ of each Voronoi region, or colloquially the most important result for a given group.
 
 
 Introduction 
-        In order to generate a measure of fakeness, we construct a fully connected markov chain where the transition probabilities correspond to the similarity between articles. After quantizing the similarity and normalizing, we can use the PageRank algorithm in order to rank the similarity between all articles. Our model is constructed under the assumption that a keyword search will generate reputable related articles, and a fake news article to be more dissimilar to these then the reputable articles are to each other.  Thus, we expect that if the article is indeed fake it will rank relatively low.
+    In today’s world there is a massive influx of ’hard to distinguish’ data. The project’s objective is to use Google’s search engine to return the most prominent articles with respect to distinct ’groups’ of articles. Here, instead of finding the most relevant and reputable articles, we construct a graph using the retrieved data and try to find communities within the graph that correspond to similar articles. By finding the centers of these communities, we can generate a list of articles that will summarize different topics related to the query.
 
 
 Algorithm Overview:
-1. Extract keywords from article in question and take the top fixed n recommended articles from a search of the keywords
-2. Generate a vector representation of the n+1 articles (the specific representation is not finalized, one representation could be a bag-of-words where the corpus is the union of all the articles)
-3. Generate a complete graph with n+1 nodes where each node is an article with the corresponding vector representation. The edges of the graph will be a measure of similarity between articles. Again, the method by which to determine similarity is not finalized but we could for example, use cosine similarity. 
-4. Normalize the edges. Specifically, since we want a markov chain, divide each edge weight by the highest “node weight” where the node weight is the sum of the edge weights connected to a node. Add self-loops to each node such that the node weight is equal to 1 and is a distribution. 
-5. Now that we have a markov chain that represents the similarity between articles PageRank will give us a ranking of the articles that are most similar to other articles. If the article in question is sufficiently low on this list, we can classify it as fake news.
+	1. Enter Search Value
+	2. Uses google to retrieve results
+	3. Parse text for each result
+	4. Generate a graph where edge weights correspond to the similarities (tf-idf) of the documents
+	5. Adjust edge weights and apply threshold on similarities in order to transform to adjacency matrix
+	6. Normalize the adjacency matrix to be applicable to PageRank Algorithm
+	7. Select parameters by simulations and apply the PageRank-ClusteringA [1]
+	8. Output the articles corresponding to the centers
+
+
+** To see full explanation please view finding-key-articles.pdf

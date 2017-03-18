@@ -17,7 +17,7 @@ def gSearch(str):
     # 1) Look keywords on google, stop = number of pages
     print "Retrieving pages..."
     pages = []
-    for url in search(str, stop=25):
+    for url in search(str, stop=50):
         print url
         pages.append(url)
     print "Pages retrieved"
@@ -51,7 +51,7 @@ def simMatrix(pages):
     tfidf = vect.fit_transform(textList)
     transition_matrix = (tfidf * tfidf.T).A
     transition_matrix = filterNaN(transition_matrix)
-    transition_matrix = cleanup(transition_matrix)
+    transition_matrix = adjacent(transition_matrix)
     transition_matrix = noZeros(transition_matrix)
     # row_sums = transition_matrix.sum(axis=1)
     # mtx = transition_matrix / row_sums[:, np.newaxis]   # normalizing
@@ -65,7 +65,7 @@ def filterNaN(mtx):
     for i in range(len(mtx)):
         if True in np.isnan(mtx[i]):
             badindex.append(i)
-    for b in badindex:
+    for b in sorted(badindex,reverse=True):
         mtx = np.delete(mtx,(b), axis=0)
         mtx = np.delete(mtx,(b), axis=1)
     return mtx
@@ -75,7 +75,7 @@ def noZeros(mtx):
     for i in range(len(mtx)):
         if sum(mtx[i]) == 0:
             badindex.append(i)
-    for b in badindex:
+    for b in sorted(badindex,reverse=True):
         mtx = np.delete(mtx,(b), axis=0)
         mtx = np.delete(mtx,(b), axis=1)
     return mtx
