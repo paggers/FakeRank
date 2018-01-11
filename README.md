@@ -7,11 +7,11 @@ Hrishi Dharam, Eilam Levitov
 
 
 ### Abstract:  
-    We began this project with a general goal to rank the ’fakeness’ of news articles. During construction the goal has shifted slightly, but the concept is still similar. Given a search value, our program will return results corresponding to the ’center of mass’ of each Voronoi region, or colloquially the most important result for a given group.
+We began this project with a general goal to rank the ’fakeness’ of news articles. During construction the goal has shifted slightly, but the concept is still similar. Given a search value, our program will return results corresponding to the ’center of mass’ of each Voronoi region, or colloquially the most important result for a given group.
 
 
 ### Introduction:   
-    In today’s world there is a massive influx of ’hard to distinguish’ data. The project’s objective is to use Google’s search engine to return the most prominent articles with respect to distinct ’groups’ of articles. Here, instead of finding the most relevant and reputable articles, we construct a graph using the retrieved data and try to find communities within the graph that correspond to similar articles. By finding the centers of these communities, we can generate a list of articles that will summarize different topics related to the query.
+In today’s world there is a massive influx of ’hard to distinguish’ data. The project’s objective is to use Google’s search engine to return the most prominent articles with respect to distinct ’groups’ of articles. Here, instead of finding the most relevant and reputable articles, we construct a graph using the retrieved data and try to find communities within the graph that correspond to similar articles. By finding the centers of these communities, we can generate a list of articles that will summarize different topics related to the query.
 
 
 ### Algorithm Overview:  
